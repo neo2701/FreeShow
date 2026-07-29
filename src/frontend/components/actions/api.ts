@@ -323,6 +323,7 @@ export const API_ACTIONS = {
 
     // CONNECTION
     sync_content_provider: () => contentProviderSync(),
+    reload_library: () => sendMain(Main.REFRESH_SHOWS),
     // sync_cloud_now
 
     // EMIT

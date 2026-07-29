@@ -2,7 +2,7 @@ import path from "path"
 import { ToMain } from "../../types/IPC/ToMain"
 import type { Show, Shows, TrimmedShow, TrimmedShows } from "../../types/Show"
 import { sendToMain } from "../IPC/main"
-import { deleteFile, getDataFolderPath, parseShow, readFile, readFileAsync, readFolder, readFolderAsync, renameFileAsync } from "./files"
+import { deleteFile, getDataFolderPath, loadShows, parseShow, readFileAsync, readFolder, readFolderAsync, renameFileAsync } from "./files"
 
 export function getAllShows() {
     const showsPath = getDataFolderPath("shows")
@@ -106,28 +106,8 @@ export function deleteShowsNotIndexed(data: { shows: TrimmedShows }) {
 }
 
 export function refreshAllShows() {
-    const showsPath = getDataFolderPath("shows")
-
-    // list all shows in folder
-    const filesInFolder: string[] = readFolder(showsPath)
-    if (!filesInFolder.length) return
-
-    const newShows: TrimmedShows = {}
-
-    for (const name of filesInFolder) loadFile(name)
-    function loadFile(name: string) {
-        if (!name.includes(".show")) return
-
-        const showPath: string = path.join(showsPath, name)
-        const show = parseShow(readFile(showPath))
-
-        if (!show || !show[1]) return
-
-        const trimmedShow = trimShow({ ...show[1], name: name.replace(".show", "") })
-        if (trimmedShow) newShows[show[0]] = trimmedShow
-    }
-
-    if (!Object.keys(newShows).length) return
+    const newShows = loadShows()
+    if (!newShows || !Object.keys(newShows).length) return
     sendToMain(ToMain.REFRESH_SHOWS2, newShows)
 }
 
